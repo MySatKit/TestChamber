@@ -147,8 +147,8 @@ def main():
     temperature, pressure, humidity = read_BME280_all(bus)
 
     print(f"Temperature : {temperature} C")
-    print(f"Pressure : {pressure} hPa")
-    print(f"Humidity : {round(humidity, 2)} %")
+    print(f"Pressure    : {round(pressure, 3)} hPa")
+    print(f"Humidity    : {round(humidity, 2)} %")
 
 
 if __name__ == "__main__":
