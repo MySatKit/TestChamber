@@ -4,7 +4,8 @@ import time
 from ctypes import c_short
 from smbus2 import SMBus
 
-DEVICE = 0x76  # Default device I2C address
+DEVICE_0 = 0x76  # Default device I2C address
+DEVICE_1 = 0x77
 
 
 def get_short(data, index):
@@ -31,14 +32,14 @@ def get_uchar(data, index):
     return result
 
 
-def read_BME280_ID(bus: SMBus, addr=DEVICE):
+def read_BME280_ID(bus: SMBus, addr=DEVICE_0):
     # Chip ID Register Address
     REG_ID = 0xD0
     chip_id, chip_version = bus.read_i2c_block_data(addr, REG_ID, 2)
     return chip_id, chip_version
 
 
-def read_BME280_all(bus: SMBus, addr=DEVICE):
+def read_BME280_all(bus: SMBus, addr=DEVICE_0):
     # Register Addresses
     REG_DATA = 0xF7
     REG_CONTROL = 0xF4

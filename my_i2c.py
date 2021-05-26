@@ -18,20 +18,14 @@ class MyI2CBus(SMBus):
         self.bus = bus
         self.devices: dict = {}
 
-    def add_device(self, name: str, addr: int) -> None:
-        if name in self.devices:
-            raise KeyError("Device already exists")
-        else:
-            self.devices[name] = addr
+    def __getitem__(self, item):
+        return self.devices[item]
 
-    def update_device(self, name: str, addr: int):
-        if name not in self.devices:
-            raise KeyError("Device does not exist")
-        else:
-            self.devices[name] = addr
+    def __setitem__(self, key, value):
+        self.devices[key] = value
 
-    def remove_device(self, name: str):
-        del self.devices[name]
+    def __delitem__(self, key):
+        del self.devices[key]
 
     def load_devices(self, path: str):
         """
