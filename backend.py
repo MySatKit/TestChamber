@@ -2,12 +2,12 @@ from fastapi import FastAPI, Request
 from uvicorn import run
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from os import environ
 
-
 app = FastAPI()
+app.mount('/js', StaticFiles(directory="gui/js"), name="js")
 templates = Jinja2Templates(directory="gui/html")
-
 
 if not environ.get('no_rpi', False):
     from my_i2c import MyI2CBus
@@ -23,28 +23,38 @@ else:
 
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
-    if not dummy:
-        t, p, h = read_BME280_all(my_i2c_bus)
-    else:
-        t = 26
-        p = 1008
-        h = 59
-    return templates.TemplateResponse("root.html", {"request": request,
-                                                    "temperature": t,
-                                                    "pressure": p,
-                                                    "humidity": h}
-                                      )
+    return templates.TemplateResponse("root.html", {"request": request})
 
 
 @app.get("/update")
 async def update():
+    data = {}
     if not dummy:
-        t, p, h = read_BME280_all(my_i2c_bus)
+        t, p, h = read_BME280_all(my_i2c_bus, addr=my_i2c_bus['inside'])
+        data['inside'] = {
+            'temperature': t,
+            'pressure': p,
+            'humidity': h
+        }
+
+        t, p, h = read_BME280_all(my_i2c_bus, addr=my_i2c_bus['outside'])
+        data['outside'] = {
+            'temperature': t,
+            'pressure': p,
+            'humidity': h
+        }
     else:
-        t = 26
-        p = 1008
-        h = 59
-    return [t, p, h]
+        data['inside'] = {
+            'temperature': -40,
+            'pressure': 560,
+            'humidity': 2
+        }
+        data['outside'] = {
+            'temperature': 26,
+            'pressure': 1008,
+            'humidity': 55
+        }
+    return data
 
 
 if __name__ == '__main__':

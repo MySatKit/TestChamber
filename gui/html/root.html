@@ -2,13 +2,12 @@
 <html>
     <head>
         <title>Test Chamber</title>
+        <script src="{{ url_for('js', path='/root.js') }}"></script>
     </head>
 
     <body>
-        <pre>
-Temperature: {{ temperature }}
-Humidity: {{ humidity }}
-Pressure: {{ pressure }}
-        </pre>
+        <p id="temperature">Temperature: </p>
+        <p id="humidity">Humidity: </p>
+        <p id="pressure">Pressure: </p>
     </body>
 </html>
