@@ -3,7 +3,11 @@ from uvicorn import run
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
+
 from os import environ
+from typing import Dict, Any
+
 
 app = FastAPI()
 app.mount('/js', StaticFiles(directory="gui/js"), name="js")
@@ -26,7 +30,12 @@ async def root(request: Request):
     return templates.TemplateResponse("root.html", {"request": request})
 
 
-@app.get("/update")
+class UpdateResponse(BaseModel):
+    inside: Dict[str, Any]
+    outside: Dict[str, Any]
+
+
+@app.get("/update", response_model=UpdateResponse)
 async def update():
     data = {}
     if not dummy:
@@ -37,7 +46,7 @@ async def update():
             'humidity': h
         }
 
-        t, p, h = read_BME280_all(my_i2c_bus, addr=my_i2c_bus['outside'])
+        t, p, h = read_BME280_all(my_i2c_bus, addr=my_i2c_bus['inside'])
         data['outside'] = {
             'temperature': t,
             'pressure': p,
