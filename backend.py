@@ -19,7 +19,7 @@ if not environ.get('no_rpi', False):
 
     my_i2c_bus = MyI2CBus(1)
     my_i2c_bus["inside"] = DEVICE_0
-    my_i2c_bus["outside"] = DEVICE_1
+    # my_i2c_bus["outside"] = DEVICE_1
     dummy = False
 else:
     dummy = True
@@ -42,15 +42,15 @@ async def update():
         t, p, h = read_BME280_all(my_i2c_bus, addr=my_i2c_bus['inside'])
         data['inside'] = {
             'temperature': t,
-            'pressure': p,
-            'humidity': h
+            'pressure': round(p, 2),
+            'humidity': round(h, 2)
         }
 
         t, p, h = read_BME280_all(my_i2c_bus, addr=my_i2c_bus['inside'])
         data['outside'] = {
             'temperature': t,
-            'pressure': p,
-            'humidity': h
+            'pressure': round(p, 2),
+            'humidity': round(h, 2)
         }
     else:
         data['inside'] = {

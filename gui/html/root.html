@@ -3,11 +3,51 @@
     <head>
         <title>Test Chamber</title>
         <script src="{{ url_for('js', path='/root.js') }}"></script>
+        <style type="text/css">
+            table, th, td {
+                border: 1px solid black;
+            }
+        </style>
     </head>
 
     <body>
-        <p id="temperature">Temperature: </p>
-        <p id="humidity">Humidity: </p>
-        <p id="pressure">Pressure: </p>
+        <table>
+            <thead>
+                <tr>
+                    <th style="color: fuchsia;">BME 280</th>
+                    <th>Inside</th>
+                    <th>Outside</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th>Temperature</th>
+                    <td id="it"></td>
+                    <td id="ot"></td>
+                </tr>
+                <tr>
+                    <th>Pressure</th>
+                    <td id="ip"></td>
+                    <td id="op"></td>
+                </tr>
+                <tr>
+                    <th>Humidity</th>
+                    <td id="ih"></td>
+                    <td id="oh"></td>
+                </tr>
+            </tbody>
+        </table>
+        <table>
+            <thead>
+                <tr>
+                    <th>Altitude</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td id="alt"></td>
+                </tr>
+            </tbody>
+        </table>
     </body>
 </html>

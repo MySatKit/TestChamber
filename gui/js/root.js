@@ -3,21 +3,28 @@ function getNewData(){
         .then((response) => {
             return response.json();
         })
-         // uncomment to log
         .then((data) => {
-            console.log(data);
+            updateBME(data);
+            // console.log(data);
         });
 };
 
 function updateBME(response){
-    // will implement it soon
+    document.getElementById("it").textContent = response['inside']['temperature'] + " " +String.fromCharCode(176) + "C";
+    document.getElementById("ot").textContent = response['outside']['temperature'] + String.fromCharCode(176) + "C";
+
+    document.getElementById("ip").textContent = response['inside']['pressure'] + " Pa";
+    document.getElementById("op").textContent = response['outside']['pressure'] + " Pa";
+
+    document.getElementById("ih").textContent = response['inside']['humidity'] + " %";
+    document.getElementById("oh").textContent = response['outside']['humidity'] + " %";
+
+    let atmospheric = response['inside']['pressure'];
+    let seaLevel = response['outside']['pressure'];
+    document.getElementById("alt").textContent = (44330.0 * (1.0 - Math.pow(atmospheric / seaLevel, 0.1903))).toFixed(3) + " m";
 };
 
 
 document.addEventListener('DOMContentLoaded', function(){
-    setTimeout(() => updateBME(getNewData()), 5000); // Milliseconds
-    /*
-    1 - бесконечный цикл
-    2 - задержка
-    */
+    setInterval(() => getNewData(), 5000); // Milliseconds
 });
