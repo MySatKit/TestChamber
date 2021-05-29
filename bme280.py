@@ -4,17 +4,17 @@ import time
 from ctypes import c_short
 from smbus2 import SMBus
 
-DEVICE_ADDR = 0x76  # Default device I2C address
+BME280_ADDRESS = 0x76  # Default device I2C address
 
 
 def get_short(data, index):
     # return two bytes from data as a signed 16-bit value
-    return c_short((data[index+1] << 8) + data[index]).value
+    return c_short((data[index + 1] << 8) + data[index]).value
 
 
 def get_ushort(data, index):
     # return two bytes from data as an unsigned 16-bit value
-    return (data[index+1] << 8) + data[index]
+    return (data[index + 1] << 8) + data[index]
 
 
 def get_char(data, index):
@@ -31,121 +31,208 @@ def get_uchar(data, index):
     return result
 
 
-def read_BME280_ID(bus: SMBus, addr=DEVICE_ADDR):
-    # Chip ID Register Address
-    REG_ID = 0xD0
-    chip_id, chip_version = bus.read_i2c_block_data(addr, REG_ID, 2)
-    return chip_id, chip_version
-
-
-def read_BME280_all(bus: SMBus, addr=DEVICE_ADDR):
+class BME280:
     # Register Addresses
-    REG_DATA = 0xF7
-    REG_CONTROL = 0xF4
-    REG_CONFIG = 0xF5
+    BME280_REGISTER_DIG_T1 = 0x88,
+    BME280_REGISTER_DIG_T2 = 0x8A,
+    BME280_REGISTER_DIG_T3 = 0x8C,
 
-    REG_CONTROL_HUM = 0xF2
-    REG_HUM_MSB = 0xFD
-    REG_HUM_LSB = 0xFE
+    BME280_REGISTER_DIG_P1 = 0x8E,
+    BME280_REGISTER_DIG_P2 = 0x90,
+    BME280_REGISTER_DIG_P3 = 0x92,
+    BME280_REGISTER_DIG_P4 = 0x94,
+    BME280_REGISTER_DIG_P5 = 0x96,
+    BME280_REGISTER_DIG_P6 = 0x98,
+    BME280_REGISTER_DIG_P7 = 0x9A,
+    BME280_REGISTER_DIG_P8 = 0x9C,
+    BME280_REGISTER_DIG_P9 = 0x9E,
 
-    # Oversample setting - page 27
-    OVERSAMPLE_TEMP = 2
-    OVERSAMPLE_PRES = 2
-    MODE = 1
+    BME280_REGISTER_DIG_H1 = 0xA1,
+    BME280_REGISTER_DIG_H2 = 0xE1,
+    BME280_REGISTER_DIG_H3 = 0xE3,
+    BME280_REGISTER_DIG_H4 = 0xE4,
+    BME280_REGISTER_DIG_H5 = 0xE5,
+    BME280_REGISTER_DIG_H6 = 0xE7,
 
-    # Oversample setting for humidity register - page 26
-    OVERSAMPLE_HUM = 2
-    bus.write_byte_data(addr, REG_CONTROL_HUM, OVERSAMPLE_HUM)
+    BME280_REGISTER_CHIP_ID = 0xD0,
+    BME280_REGISTER_VERSION = 0xD1,
+    BME280_REGISTER_SOFT_RESET = 0xE0,
 
-    control = OVERSAMPLE_TEMP << 5 | OVERSAMPLE_PRES << 2 | MODE
-    bus.write_byte_data(addr, REG_CONTROL, control)
+    BME280_REGISTER_CAL26 = 0xE1,  # R calibration stored in 0xE1 - 0xF0
 
-    # Read blocks of calibration data from EEPROM
-    # See Page 22 data sheet
-    cal1 = bus.read_i2c_block_data(addr, 0x88, 24)
-    cal2 = bus.read_i2c_block_data(addr, 0xA1, 1)
-    cal3 = bus.read_i2c_block_data(addr, 0xE1, 7)
+    BME280_REGISTER_CONTROL_HUMID = 0xF2,
+    BME280_REGISTER_STATUS = 0XF3,
+    BME280_REGISTER_CONTROL = 0xF4,
+    BME280_REGISTER_CONFIG = 0xF5,
+    BME280_REGISTER_PRESSURE_DATA = 0xF7,
+    BME280_REGISTER_TEMP_DATA = 0xFA,
+    BME280_REGISTER_HUMID_DATA = 0xFD
 
-    # Convert byte data to word values
-    dig_T1 = get_ushort(cal1, 0)
-    dig_T2 = get_short(cal1, 2)
-    dig_T3 = get_short(cal1, 4)
+    oversampling = {
+        1: 1,
+        2: 2,
+        4: 3,
+        8: 4,
+        16: 5
+    }
 
-    dig_p = []
-    dig_P1 = get_ushort(cal1, 6)
-    for i in range(8, 24, 2):
-        dig_p.append(get_short(cal1, i))
+    mode = {
+        1: 0,  # sleep
+        2: 1,  # forced
+        4: 2  # normal
+    }
 
-    dig_H1 = get_uchar(cal2, 0)
-    dig_H2 = get_short(cal3, 0)
-    dig_H3 = get_uchar(cal3, 2)
+    def __init__(self, bus: SMBus):
+        self.bus: SMBus = bus
 
-    dig_H4 = get_char(cal3, 3)
-    dig_H4 = (dig_H4 << 24) >> 20
-    dig_H4 = dig_H4 | (get_char(cal3, 4) & 0x0F)
+        # Read blocks of calibration data from EEPROM
+        cal1 = bus.read_i2c_block_data(BME280_ADDRESS, self.BME280_REGISTER_DIG_T1, 24)
+        cal2 = bus.read_i2c_block_data(BME280_ADDRESS, self.BME280_REGISTER_DIG_H1, 1)
+        cal3 = bus.read_i2c_block_data(BME280_ADDRESS, self.BME280_REGISTER_DIG_H2, 7)
 
-    dig_H5 = get_char(cal3, 5)
-    dig_H5 = (dig_H5 << 24) >> 20
-    dig_H5 = dig_H5 | (get_uchar(cal3, 4) >> 4 & 0x0F)
+        # Convert byte data to word values
+        self.dig_T1 = get_ushort(cal1, 0)
+        self.dig_T2 = get_short(cal1, 2)
+        self.dig_T3 = get_short(cal1, 4)
 
-    dig_H6 = get_char(cal3, 6)
+        self.dig_p = []
+        self.dig_P1 = get_ushort(cal1, 6)
+        for i in range(8, 24, 2):
+            self.dig_p.append(get_short(cal1, i))
 
-    # Wait in ms (Datasheet Appendix B: Measurement time and current calculation)
-    wait_time = 1.25 + (2.3 * OVERSAMPLE_TEMP) + ((2.3 *
-                                                   OVERSAMPLE_PRES) + 0.575) + ((2.3 * OVERSAMPLE_HUM)+0.575)
-    time.sleep(wait_time/1000)  # Wait the required time
+        self.dig_H1 = get_uchar(cal2, 0)
+        self.dig_H2 = get_short(cal3, 0)
+        self.dig_H3 = get_uchar(cal3, 2)
 
-    # Read temperature/pressure/humidity
-    data = bus.read_i2c_block_data(addr, REG_DATA, 8)
-    pres_raw = (data[0] << 12) | (data[1] << 4) | (data[2] >> 4)
-    temp_raw = (data[3] << 12) | (data[4] << 4) | (data[5] >> 4)
-    hum_raw = (data[6] << 8) | data[7]
+        self.dig_H4 = get_char(cal3, 3)
+        self.dig_H4 = (self.dig_H4 << 24) >> 20
+        self.dig_H4 = self.dig_H4 | (get_char(cal3, 4) & 0x0F)
 
-    # Refine temperature
-    var1 = ((((temp_raw >> 3)-(dig_T1 << 1)))*(dig_T2)) >> 11
-    var2 = (((((temp_raw >> 4) - (dig_T1)) *
-            ((temp_raw >> 4) - (dig_T1))) >> 12) * (dig_T3)) >> 14
-    t_fine = var1+var2
-    temperature = float(((t_fine * 5) + 128) >> 8)
+        self.dig_H5 = get_char(cal3, 5)
+        self.dig_H5 = (self.dig_H5 << 24) >> 20
+        self.dig_H5 = self.dig_H5 | (get_uchar(cal3, 4) >> 4 & 0x0F)
 
-    # Refine pressure and adjust for temperature
-    var1 = t_fine / 2.0 - 64000.0
-    var2 = var1 * var1 * dig_p[4] / 32768.0
-    var2 = var2 + var1 * dig_p[3] * 2.0
-    var2 = var2 / 4.0 + dig_p[2] * 65536.0
-    var1 = (dig_p[2] * var1 * var1 / 524288.0 + dig_p[0] * var1) / 524288.0
-    var1 = (1.0 + var1 / 32768.0) * dig_P1
-    if var1 == 0:
-        pressure = 0
-    else:
-        pressure = 1048576.0 - pres_raw
-        pressure = ((pressure - var2 / 4096.0) * 6250.0) / var1
-        var1 = dig_p[7] * pressure * pressure / 2147483648.0
-        var2 = pressure * dig_p[6] / 32768.0
-        pressure = pressure + (var1 + var2 + dig_p[5]) / 16.0
+        self.dig_H6 = get_char(cal3, 6)
 
-    # Refine humidity
-    humidity = t_fine - 76800.0
-    humidity = (hum_raw - (dig_H4 * 64.0 + dig_H5 / 16384.0 * humidity)) * (dig_H2 / 65536.0 *
-                                                                            (1.0 + dig_H6 / 67108864.0 * humidity * (1.0 + dig_H3 / 67108864.0 * humidity)))
-    humidity = humidity * (1.0 - dig_H1 * humidity / 524288.0)
-    if humidity > 100:
-        humidity = 100
-    elif humidity < 0:
-        humidity = 0
+        # Wait in ms (Datasheet Appendix B: Measurement time and current calculation)
+        self.oversampling_temp = 2
+        self.oversampling_pres = 2
+        self.oversampling_hum = 2
+        self._calculate_wait_time()
 
-    return temperature/100.0, pressure/100.0, humidity
+    def id(self):
+        # Chip ID Register Address
+        chip_id, chip_version = self.bus.read_i2c_block_data(BME280_ADDRESS, self.BME280_REGISTER_CHIP_ID, 2)
+        return chip_id, chip_version
+
+    def _calculate_wait_time(self):
+        self.wait_time = 1.25 + (2.3 * self.oversampling_temp) + \
+                         ((2.3 * self.oversampling_pres) + 0.575) + \
+                         ((2.3 * self.oversampling_hum) + 0.575)
+
+    def set_humidity_oversampling(self, value: int):
+        if value not in (1, 2, 4, 8, 16):
+            return
+        self.oversampling_hum = value
+        self._calculate_wait_time()
+        self.bus.write_byte_data(BME280_ADDRESS,
+                                 self.BME280_REGISTER_CONTROL_HUMID,
+                                 value)
+
+    def set_pressure_oversampling(self, value: int):
+        if value not in (1, 2, 4, 8, 16):
+            return
+        self.oversampling_pres = value
+        self._calculate_wait_time()
+        temp = self.bus.read_i2c_block_data(BME280_ADDRESS,
+                                            self.BME280_REGISTER_CONTROL,
+                                            1)
+        temp = value << 2 | temp
+        self.bus.write_byte_data(BME280_ADDRESS,
+                                 self.BME280_REGISTER_CONTROL,
+                                 temp)
+
+    def set_temperature_oversampling(self, value: int):
+        if value not in (1, 2, 4, 8, 16):
+            return
+        self.oversampling_temp = value
+        self._calculate_wait_time()
+        temp = self.bus.read_i2c_block_data(BME280_ADDRESS,
+                                            self.BME280_REGISTER_CONTROL,
+                                            1)
+        temp = value << 5 | temp
+        self.bus.write_byte_data(BME280_ADDRESS,
+                                 self.BME280_REGISTER_CONTROL,
+                                 temp)
+
+    def set_control_mode(self, value: int):
+        if value not in (1, 2, 4):
+            return
+        temp = self.bus.read_i2c_block_data(BME280_ADDRESS,
+                                            self.BME280_REGISTER_CONTROL,
+                                            1)
+        temp = value | temp
+        self.bus.write_byte_data(BME280_ADDRESS,
+                                 self.BME280_REGISTER_CONTROL,
+                                 temp)
+
+    def read_all(self):
+        time.sleep(self.wait_time / 1000)
+
+        # Read temperature/pressure/humidity
+        data = self.bus.read_i2c_block_data(BME280_ADDRESS, self.BME280_REGISTER_PRESSURE_DATA, 8)
+        pres_raw = (data[0] << 12) | (data[1] << 4) | (data[2] >> 4)
+        temp_raw = (data[3] << 12) | (data[4] << 4) | (data[5] >> 4)
+        hum_raw = (data[6] << 8) | data[7]
+
+        # Refine temperature
+        var1 = ((temp_raw >> 3 - self.dig_T1 << 1) * self.dig_T2) >> 11
+        var2 = (((((temp_raw >> 4) - self.dig_T1) *
+                  ((temp_raw >> 4) - self.dig_T1)) >> 12) * self.dig_T3) >> 14
+        t_fine = var1 + var2
+        temperature = float(((t_fine * 5) + 128) >> 8)
+
+        # Refine pressure and adjust for temperature
+        var1 = t_fine / 2.0 - 64000.0
+        var2 = var1 * var1 * self.dig_p[4] / 32768.0
+        var2 = var2 + var1 * self.dig_p[3] * 2.0
+        var2 = var2 / 4.0 + self.dig_p[2] * 65536.0
+        var1 = (self.dig_p[2] * var1 * var1 / 524288.0 + self.dig_p[0] * var1) / 524288.0
+        var1 = (1.0 + var1 / 32768.0) * self.dig_P1
+        if var1 == 0:
+            pressure = 0
+        else:
+            pressure = 1048576.0 - pres_raw
+            pressure = ((pressure - var2 / 4096.0) * 6250.0) / var1
+            var1 = self.dig_p[7] * pressure * pressure / 2147483648.0
+            var2 = pressure * self.dig_p[6] / 32768.0
+            pressure = pressure + (var1 + var2 + self.dig_p[5]) / 16.0
+
+        # Refine humidity
+        humidity = t_fine - 76800.0
+        humidity = (hum_raw - (self.dig_H4 * 64.0 + self.dig_H5 / 16384.0 * humidity)) * (self.dig_H2 / 65536.0 *
+                                                                                          (
+                                                                                                  1.0 + self.dig_H6 / 67108864.0 * humidity * (
+                                                                                                  1.0 + self.dig_H3 / 67108864.0 * humidity)))
+        humidity = humidity * (1.0 - self.dig_H1 * humidity / 524288.0)
+        if humidity > 100:
+            humidity = 100
+        elif humidity < 0:
+            humidity = 0
+
+        return temperature / 100.0, pressure / 100.0, humidity
 
 
 def main():
     bus = SMBus(1)  # Rev 2 Pi, Pi 2 & Pi 3 uses bus 1
     # Rev 1 Pi uses bus 0
 
-    chip_id, chip_version = read_BME280_ID(bus)
+    bme280 = BME280(bus)
+    chip_id, chip_version = bme280.id()
     print(f"Chip ID     : {chip_id}")
     print(f"Version     : {chip_version}")
 
-    temperature, pressure, humidity = read_BME280_all(bus)
+    temperature, pressure, humidity = bme280.read_all()
 
     print(f"Temperature : {temperature} C")
     print(f"Pressure    : {round(pressure, 3)} hPa")
