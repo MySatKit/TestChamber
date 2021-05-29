@@ -17,7 +17,6 @@ function updateBME(response){
     document.getElementById("op").textContent = response['outside']['pressure'] + " hPa";
 
     document.getElementById("ih").textContent = response['inside']['humidity'] + " %";
-    document.getElementById("oh").textContent = response['outside']['humidity'] + " %";
 
     let atmospheric = response['inside']['pressure'];
     let seaLevel = response['outside']['pressure'];

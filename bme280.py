@@ -4,8 +4,7 @@ import time
 from ctypes import c_short
 from smbus2 import SMBus
 
-DEVICE_0 = 0x76  # Default device I2C address
-DEVICE_1 = 0x77
+DEVICE_ADDR = 0x76  # Default device I2C address
 
 
 def get_short(data, index):
@@ -32,14 +31,14 @@ def get_uchar(data, index):
     return result
 
 
-def read_BME280_ID(bus: SMBus, addr=DEVICE_0):
+def read_BME280_ID(bus: SMBus, addr=DEVICE_ADDR):
     # Chip ID Register Address
     REG_ID = 0xD0
     chip_id, chip_version = bus.read_i2c_block_data(addr, REG_ID, 2)
     return chip_id, chip_version
 
 
-def read_BME280_all(bus: SMBus, addr=DEVICE_0):
+def read_BME280_all(bus: SMBus, addr=DEVICE_ADDR):
     # Register Addresses
     REG_DATA = 0xF7
     REG_CONTROL = 0xF4
@@ -92,7 +91,8 @@ def read_BME280_all(bus: SMBus, addr=DEVICE_0):
     dig_H6 = get_char(cal3, 6)
 
     # Wait in ms (Datasheet Appendix B: Measurement time and current calculation)
-    wait_time = 1.25 + (2.3 * OVERSAMPLE_TEMP) + ((2.3 * OVERSAMPLE_PRES) + 0.575) + ((2.3 * OVERSAMPLE_HUM)+0.575)
+    wait_time = 1.25 + (2.3 * OVERSAMPLE_TEMP) + ((2.3 *
+                                                   OVERSAMPLE_PRES) + 0.575) + ((2.3 * OVERSAMPLE_HUM)+0.575)
     time.sleep(wait_time/1000)  # Wait the required time
 
     # Read temperature/pressure/humidity
