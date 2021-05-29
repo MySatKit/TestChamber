@@ -118,7 +118,10 @@ class BME280:
         self.oversampling_temp = 2
         self.oversampling_pres = 2
         self.oversampling_hum = 2
-        self._calculate_wait_time()
+        self.set_humidity_oversampling(2)
+        self.set_pressure_oversampling(2)
+        self.set_temperature_oversampling(2)
+        self.set_control_mode(2)
 
     def id(self):
         # Chip ID Register Address
@@ -137,7 +140,7 @@ class BME280:
         self._calculate_wait_time()
         self.bus.write_byte_data(BME280_ADDRESS,
                                  self.BME280_REGISTER_CONTROL_HUMID,
-                                 value)
+                                 self.oversampling[value])
 
     def set_pressure_oversampling(self, value: int):
         if value not in (1, 2, 4, 8, 16):
@@ -147,7 +150,7 @@ class BME280:
         temp = self.bus.read_i2c_block_data(BME280_ADDRESS,
                                             self.BME280_REGISTER_CONTROL,
                                             1)
-        temp = (value << 2) | temp[0]
+        temp = (self.oversampling[value] << 2) | temp[0]
         self.bus.write_byte_data(BME280_ADDRESS,
                                  self.BME280_REGISTER_CONTROL,
                                  temp)
@@ -160,7 +163,7 @@ class BME280:
         temp = self.bus.read_i2c_block_data(BME280_ADDRESS,
                                             self.BME280_REGISTER_CONTROL,
                                             1)
-        temp = (value << 5) | temp[0]
+        temp = (self.oversampling[value] << 5) | temp[0]
         self.bus.write_byte_data(BME280_ADDRESS,
                                  self.BME280_REGISTER_CONTROL,
                                  temp)
@@ -171,12 +174,13 @@ class BME280:
         temp = self.bus.read_i2c_block_data(BME280_ADDRESS,
                                             self.BME280_REGISTER_CONTROL,
                                             1)
-        temp = value | temp[0]
+        temp = self.mode[value] | temp[0]
         self.bus.write_byte_data(BME280_ADDRESS,
                                  self.BME280_REGISTER_CONTROL,
                                  temp)
 
     def read_all(self):
+        self.set_control_mode(2)
         time.sleep(self.wait_time / 1000)
 
         # Read temperature/pressure/humidity
