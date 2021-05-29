@@ -15,9 +15,12 @@ graphql-relay==2.0.1
 h11==0.12.0
 httptools==0.1.2
 idna==2.10
+imutils==0.5.4
 itsdangerous==1.1.0
 Jinja2==2.11.3
 MarkupSafe==2.0.1
+numpy==1.20.3
+opencv-python==4.5.1.48
 orjson==3.5.2
 promise==2.3
 pycodestyle==2.7.0
