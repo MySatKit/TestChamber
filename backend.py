@@ -40,7 +40,7 @@ class UpdateResponse(BaseModel):
     outside: Dict[str, Any]
 
 
-@app.get("/video")
+@app.get("/video", response_class=StreamingResponse)
 async def video_feed():
     # return the response generated along with the specific media
     return StreamingResponse(generate(), media_type="multipart/x-mixed-replace;boundary=frame")
@@ -70,8 +70,7 @@ async def update():
         }
         data['outside'] = {
             'temperature': 26,
-            'pressure': 1008,
-            'humidity': 55
+            'pressure': 1008
         }
     return data
 
