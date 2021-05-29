@@ -33,39 +33,39 @@ def get_uchar(data, index):
 
 class BME280:
     # Register Addresses
-    BME280_REGISTER_DIG_T1 = 0x88,
-    BME280_REGISTER_DIG_T2 = 0x8A,
-    BME280_REGISTER_DIG_T3 = 0x8C,
+    BME280_REGISTER_DIG_T1 = 0x88
+    BME280_REGISTER_DIG_T2 = 0x8A
+    BME280_REGISTER_DIG_T3 = 0x8C
 
-    BME280_REGISTER_DIG_P1 = 0x8E,
-    BME280_REGISTER_DIG_P2 = 0x90,
-    BME280_REGISTER_DIG_P3 = 0x92,
-    BME280_REGISTER_DIG_P4 = 0x94,
-    BME280_REGISTER_DIG_P5 = 0x96,
-    BME280_REGISTER_DIG_P6 = 0x98,
-    BME280_REGISTER_DIG_P7 = 0x9A,
-    BME280_REGISTER_DIG_P8 = 0x9C,
-    BME280_REGISTER_DIG_P9 = 0x9E,
+    BME280_REGISTER_DIG_P1 = 0x8E
+    BME280_REGISTER_DIG_P2 = 0x90
+    BME280_REGISTER_DIG_P3 = 0x92
+    BME280_REGISTER_DIG_P4 = 0x94
+    BME280_REGISTER_DIG_P5 = 0x96
+    BME280_REGISTER_DIG_P6 = 0x98
+    BME280_REGISTER_DIG_P7 = 0x9A
+    BME280_REGISTER_DIG_P8 = 0x9C
+    BME280_REGISTER_DIG_P9 = 0x9E
 
-    BME280_REGISTER_DIG_H1 = 0xA1,
-    BME280_REGISTER_DIG_H2 = 0xE1,
-    BME280_REGISTER_DIG_H3 = 0xE3,
-    BME280_REGISTER_DIG_H4 = 0xE4,
-    BME280_REGISTER_DIG_H5 = 0xE5,
-    BME280_REGISTER_DIG_H6 = 0xE7,
+    BME280_REGISTER_DIG_H1 = 0xA1
+    BME280_REGISTER_DIG_H2 = 0xE1
+    BME280_REGISTER_DIG_H3 = 0xE3
+    BME280_REGISTER_DIG_H4 = 0xE4
+    BME280_REGISTER_DIG_H5 = 0xE5
+    BME280_REGISTER_DIG_H6 = 0xE7
 
-    BME280_REGISTER_CHIP_ID = 0xD0,
-    BME280_REGISTER_VERSION = 0xD1,
-    BME280_REGISTER_SOFT_RESET = 0xE0,
+    BME280_REGISTER_CHIP_ID = 0xD0
+    BME280_REGISTER_VERSION = 0xD1
+    BME280_REGISTER_SOFT_RESET = 0xE0
 
-    BME280_REGISTER_CAL26 = 0xE1,  # R calibration stored in 0xE1 - 0xF0
+    BME280_REGISTER_CAL26 = 0xE1  # R calibration stored in 0xE1 - 0xF0
 
-    BME280_REGISTER_CONTROL_HUMID = 0xF2,
-    BME280_REGISTER_STATUS = 0XF3,
-    BME280_REGISTER_CONTROL = 0xF4,
-    BME280_REGISTER_CONFIG = 0xF5,
-    BME280_REGISTER_PRESSURE_DATA = 0xF7,
-    BME280_REGISTER_TEMP_DATA = 0xFA,
+    BME280_REGISTER_CONTROL_HUMID = 0xF2
+    BME280_REGISTER_STATUS = 0XF3
+    BME280_REGISTER_CONTROL = 0xF4
+    BME280_REGISTER_CONFIG = 0xF5
+    BME280_REGISTER_PRESSURE_DATA = 0xF7
+    BME280_REGISTER_TEMP_DATA = 0xFA
     BME280_REGISTER_HUMID_DATA = 0xFD
 
     oversampling = {
@@ -147,7 +147,7 @@ class BME280:
         temp = self.bus.read_i2c_block_data(BME280_ADDRESS,
                                             self.BME280_REGISTER_CONTROL,
                                             1)
-        temp = value << 2 | temp
+        temp = (value << 2) | temp[0]
         self.bus.write_byte_data(BME280_ADDRESS,
                                  self.BME280_REGISTER_CONTROL,
                                  temp)
@@ -160,7 +160,7 @@ class BME280:
         temp = self.bus.read_i2c_block_data(BME280_ADDRESS,
                                             self.BME280_REGISTER_CONTROL,
                                             1)
-        temp = value << 5 | temp
+        temp = (value << 5) | temp[0]
         self.bus.write_byte_data(BME280_ADDRESS,
                                  self.BME280_REGISTER_CONTROL,
                                  temp)
@@ -171,7 +171,7 @@ class BME280:
         temp = self.bus.read_i2c_block_data(BME280_ADDRESS,
                                             self.BME280_REGISTER_CONTROL,
                                             1)
-        temp = value | temp
+        temp = value | temp[0]
         self.bus.write_byte_data(BME280_ADDRESS,
                                  self.BME280_REGISTER_CONTROL,
                                  temp)
@@ -186,7 +186,7 @@ class BME280:
         hum_raw = (data[6] << 8) | data[7]
 
         # Refine temperature
-        var1 = ((temp_raw >> 3 - self.dig_T1 << 1) * self.dig_T2) >> 11
+        var1 = (((temp_raw >> 3) - (self.dig_T1 << 1)) * self.dig_T2) >> 11
         var2 = (((((temp_raw >> 4) - self.dig_T1) *
                   ((temp_raw >> 4) - self.dig_T1)) >> 12) * self.dig_T3) >> 14
         t_fine = var1 + var2
