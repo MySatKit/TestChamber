@@ -10,11 +10,11 @@ function getNewData(){
 };
 
 function updateBME(response){
-    document.getElementById("it").textContent = response['inside']['temperature'] + " " +String.fromCharCode(176) + "C";
-    document.getElementById("ot").textContent = response['outside']['temperature'] + String.fromCharCode(176) + "C";
+    document.getElementById("it").textContent = response['inside']['temperature'] + " " + String.fromCharCode(176) + "C";
+    document.getElementById("ot").textContent = response['outside']['temperature'] + " " + String.fromCharCode(176) + "C";
 
-    document.getElementById("ip").textContent = response['inside']['pressure'] + " Pa";
-    document.getElementById("op").textContent = response['outside']['pressure'] + " Pa";
+    document.getElementById("ip").textContent = response['inside']['pressure'] + " hPa";
+    document.getElementById("op").textContent = response['outside']['pressure'] + " hPa";
 
     document.getElementById("ih").textContent = response['inside']['humidity'] + " %";
     document.getElementById("oh").textContent = response['outside']['humidity'] + " %";
