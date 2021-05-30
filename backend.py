@@ -20,11 +20,11 @@ templates = Jinja2Templates(directory="gui/html")
 if not environ.get('no_rpi', False):
     from my_i2c import MyI2CBus
     from bme280 import BME280
-    from ms5611 import MS5611_ADDRESS, read_MS5611_all
+    from ms5611 import MS5611
 
     my_i2c_bus = MyI2CBus(1)
     my_i2c_bus["inside"] = BME280(my_i2c_bus)
-    my_i2c_bus["outside"] = MS5611_ADDRESS
+    # my_i2c_bus["outside"] = MS5611(my_i2c_bus)
     dummy = False
 else:
     dummy = True
@@ -57,7 +57,7 @@ async def update():
             'humidity': round(h, 2)
         }
 
-        p, t = read_MS5611_all(my_i2c_bus, addr=my_i2c_bus['outside'])
+        # p, t = my_i2c_bus['outside'].read_all()
         data['outside'] = {
             'temperature': round(t, 2),
             'pressure': round(p, 2),
