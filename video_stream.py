@@ -8,13 +8,13 @@ from threading import Lock
 from imutils.video import VideoStream
 
 
-outputFrame, lock = None, Lock()
+output_frame, lock = None, Lock()
 vs = VideoStream(0).start()
 time.sleep(2)
 
 
 def make_photo():
-    global vs, outputFrame, lock
+    global vs, output_frame, lock
     total = 0
     # loop over frames from the video stream
     while True:
@@ -32,7 +32,7 @@ def make_photo():
         # acquire the lock, set the output frame, and release the
         # lock
         with lock:
-            outputFrame = frame.copy()
+            output_frame = frame.copy()
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             print('break')
@@ -41,7 +41,7 @@ def make_photo():
 
 def generate():
     # grab global references to the output frame and lock variables
-    global vs, outputFrame, lock
+    global vs, output_frame, lock
     # loop over frames from the output stream
 
     while True:
@@ -49,12 +49,12 @@ def generate():
         with lock:
             # check if the output frame is available, otherwise skip
             # the iteration of the loop
-            if outputFrame is None:
+            if output_frame is None:
                 continue
             # encode the frame in JPEG format
-            flag, encodedImage = cv2.imencode(".jpg", outputFrame)
+            flag, encoded_image = cv2.imencode(".jpg", output_frame)
             # ensure the frame was successfully encoded
             if not flag:
                 continue
         # yield the output frame in the byte format
-        yield (b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + bytearray(encodedImage) + b'\r\n')
+        yield b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + bytearray(encoded_image) + b'\r\n'
