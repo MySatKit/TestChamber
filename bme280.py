@@ -205,8 +205,8 @@ class BME280:
 
 
 def main():
-    bus = SMBus(1)  # Rev 2 Pi, Pi 2 & Pi 3 uses bus_num 1
-    # Rev 1 Pi uses bus_num 0
+    bus = SMBus(1)  # Rev 2 Pi, Pi 2 & Pi 3 uses bus 1
+    # Rev 1 Pi uses bus 0
 
     bme280 = BME280(bus)
     chip_id, chip_version = bme280.id()
