@@ -7,7 +7,7 @@ class MyI2CBus(SMBus):
 
     def __init__(self, bus: Union[None, int, str], slave_addr = None) -> None:
         """
-        :param bus: i2c bus number (e.g. 0 or 1)
+        :param bus: i2c bus_num number (e.g. 0 or 1)
             or an absolute file path (e.g. `/dev/i2c-42`).
             If not given, a subsequent  call to ``open()`` is required.
         
