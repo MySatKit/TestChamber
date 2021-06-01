@@ -68,12 +68,12 @@ class BME280:
         cal3 = bus.read_i2c_block_data(BME280_ADDRESS, self.BME280_REGISTER_DIG_H2, 7)
 
         # Convert byte data to word values
-        self.dig_T1 = get_ushort(cal1, 0)
+        self.dig_T1 = get_ushort_le(cal1, 0)
         self.dig_T2 = get_short(cal1, 2)
         self.dig_T3 = get_short(cal1, 4)
 
         self.dig_p = []
-        self.dig_P1 = get_ushort(cal1, 6)
+        self.dig_P1 = get_ushort_le(cal1, 6)
         for i in range(8, 24, 2):
             self.dig_p.append(get_short(cal1, i))
 

@@ -1,8 +1,10 @@
 from spidev import SpiDev
 
+from my_utils import get_ushort_be
+
 
 def read_celsius(bus: SpiDev):
-    data = bus.readbytes(2)
+    data = get_ushort_be(bus.readbytes(2), 0)
     if data & 0x4:
         # no thermocouple attached!
         return -4096
@@ -18,7 +20,8 @@ if __name__ == '__main__':
 
     spi = SpiDev()
     spi.open(bus_num, device)
-    spi.max_speed_hz = 500000
+    spi.max_speed_hz = 300000
     spi.mode = 0
 
-    read_celsius(spi)
+    temp = read_celsius(spi)
+    print(f"Temperature: {temp} C")

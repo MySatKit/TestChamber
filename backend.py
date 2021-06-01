@@ -22,9 +22,22 @@ if not environ.get('no_rpi', False):
     from bme280 import BME280
     from ms5611 import MS5611
 
+    from spidev import SpiDev
+    from max6675 import read_celsius
+
     my_i2c_bus = MyI2CBus(1)
     my_i2c_bus["inside"] = BME280(my_i2c_bus)
     # my_i2c_bus["outside"] = MS5611(my_i2c_bus)
+    
+    # SPI section config -------------------------------------
+    bus_num = 0  # RPI 4 has only 1 bus_num with number 0
+    device = 0  # max6675 starts transmit on CS = 0
+    spi = SpiDev()
+    spi.open(bus_num, device)
+    spi.max_speed_hz = 300000
+    spi.mode = 0
+    # --------------------------------------------------------
+
     dummy = False
 else:
     dummy = True
@@ -38,6 +51,7 @@ async def root(request: Request):
 class UpdateResponse(BaseModel):
     inside: Dict[str, Any]
     outside: Dict[str, Any]
+    thermocouple: float
 
 
 @app.get("/video", response_class=StreamingResponse)
@@ -62,6 +76,8 @@ async def update():
             'temperature': round(t, 2),
             'pressure': round(p, 2),
         }
+
+        data['thermocouple'] = read_celsius(spi)
     else:
         data['inside'] = {
             'temperature': -40,
@@ -72,6 +88,7 @@ async def update():
             'temperature': 26,
             'pressure': 1008
         }
+        data['thermocouple'] = 55
     return data
 
 

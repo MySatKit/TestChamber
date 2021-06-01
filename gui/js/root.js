@@ -12,6 +12,7 @@ function getNewData(){
 function updateBME(response){
     document.getElementById("it").textContent = response['inside']['temperature'] + " " + String.fromCharCode(176) + "C";
     document.getElementById("ot").textContent = response['outside']['temperature'] + " " + String.fromCharCode(176) + "C";
+    document.getElementById("thc").textContent = response['thermocouple'] + " " + String.fromCharCode(176) + "C";
 
     document.getElementById("ip").textContent = response['inside']['pressure'] + " hPa";
     document.getElementById("op").textContent = response['outside']['pressure'] + " hPa";
