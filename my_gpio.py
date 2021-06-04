@@ -54,6 +54,16 @@ class MyRelay(MyGPIO):
         "liquid_nitrogen_relay": 23
     }
 
+    states = {
+         "liquid_nitrogen_relay": 0
+    }
+
+    def __init__(self) -> None:
+        super(MyRelay, self).__init__()
+        for k, v in self.pins.items():
+            self._set_direction(v, output=True)
+            self._set_state(v, bool(self.states[k]))
+
     def list_relays(self):
         return list(self.pins.keys())
 
@@ -82,7 +92,16 @@ class MyRelay(MyGPIO):
             temp = self.pins.get(pin)
             if temp is None:
                 return
+            self.states[pin] = 1
             pin = temp
+        else:
+            for pin_name, pin_num in self.pins.items():
+                if pin == pin_num:
+                    break
+            else:
+                return -1
+            self.states[pin_name] = 1
+            pin = pin_num
 
         self._set_direction(pin, output=True)
         self._set_state(pin, True)
@@ -92,11 +111,42 @@ class MyRelay(MyGPIO):
             temp = self.pins.get(pin)
             if temp is None:
                 return
+            self.states[pin] = 1
             pin = temp
+        else:
+            for pin_name, pin_num in self.pins.items():
+                if pin == pin_num:
+                    break
+            else:
+                return -1
+            self.states[pin_name] = 0
+            pin = pin_num
 
         self._set_direction(pin, output=True)
         self._set_state(pin, False)
 
+    def toggle_output(self, pin: Union[int, str]) -> int:
+        if isinstance(pin, (str, )):
+            temp = self.pins.get(pin)
+            if temp is None:
+                return -1
+            current_state = self.states[pin]
+            self.states[pin] = int(not bool(current_state))  # invert state
+            pin = temp
+        else:
+            for pin_name, pin_num in self.pins.items():
+                if pin == pin_num:
+                    break
+            else:
+                return -1
+            current_state = self.states[pin_name]
+            self.states[pin_name] = int(not bool(current_state))  # invert state
+            pin = pin_num
+        
+        self._set_direction(pin, output=True)
+        self._set_state(pin, not bool(current_state))
+        return int(not bool(current_state))
+    
     def get_pin_state(self, pin) -> int:
         """
         returns:
@@ -119,10 +169,9 @@ class MyRelay(MyGPIO):
 if __name__ == "__main__":
     import time
 
-    test = MyGPIO()
-    test._set_direction(23, output=True)
+    test = MyRelay()
     for i in range(5):
-        test._set_state(23, True)
+        test.toggle_output(23)
         time.sleep(1)
-        test._set_state(23, False)
+        test.toggle_output(23)
         time.sleep(1)

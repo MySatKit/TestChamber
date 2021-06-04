@@ -52,5 +52,11 @@
             </tbody>
         </table>
         <img src="http://127.0.0.1:8888/video">
+
+        {% if ln2_state %}
+        <button style="background-color: green;" id="toggle_ln2">Toggle LN2</button>
+        {% else %}
+        <button style="background-color: red;" id="toggle_ln2">Toggle LN2</button>
+        {% endif %}
     </body>
 </html>

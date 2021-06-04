@@ -18,24 +18,31 @@ app.mount('/js', StaticFiles(directory="gui/js"), name="js")
 templates = Jinja2Templates(directory="gui/html")
 
 if not environ.get('no_rpi', False):
+    from spidev import SpiDev
+    
     from my_i2c import MyI2CBus
     from bme280 import BME280
     from ms5611 import MS5611
-
-    from spidev import SpiDev
+    from my_gpio import MyRelay
     from max6675 import read_celsius
 
+    # I2C config section -------------------------------------
     my_i2c_bus = MyI2CBus(1)
     my_i2c_bus["inside"] = BME280(my_i2c_bus)
     # my_i2c_bus["outside"] = MS5611(my_i2c_bus)
-    
-    # SPI section config -------------------------------------
+    # --------------------------------------------------------
+
+    # SPI config section -------------------------------------
     bus_num = 0  # RPI 4 has only 1 bus_num with number 0
     device = 0  # max6675 starts transmit on CS = 0
     spi = SpiDev()
     spi.open(bus_num, device)
     spi.max_speed_hz = 300000
     spi.mode = 0
+    # --------------------------------------------------------
+
+    # GPIO config section
+    my_relays = MyRelay()
     # --------------------------------------------------------
 
     dummy = False
@@ -45,7 +52,7 @@ else:
 
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
-    return templates.TemplateResponse("root.html", {"request": request})
+    return templates.TemplateResponse("root.html", {"request": request, "ln2_state": my_relays.states["liquid_nitrogen_relay"]})
 
 
 class UpdateResponse(BaseModel):
@@ -58,6 +65,12 @@ class UpdateResponse(BaseModel):
 async def video_feed():
     # return the response generated along with the specific media
     return StreamingResponse(generate(), media_type="multipart/x-mixed-replace;boundary=frame")
+
+
+@app.get("/buttons/toggleLN2")
+async def toggleNL2():
+    state = my_relays.toggle_output("liquid_nitrogen_relay")
+    return {"state": state}
 
 
 @app.get("/update", response_model=UpdateResponse)
@@ -100,3 +113,5 @@ if __name__ == '__main__':
     run(app=app, port=8888)
 
 vs.stop()
+if not dummy:
+    del my_relays

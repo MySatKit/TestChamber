@@ -3,9 +3,24 @@ async function getNewData(){
     if (!response.ok) {
         console.log(`HTTP error! status: ${response.status}`);
     } else {
-        updateBME(response.json());
+        data = await response.json()
+        updateBME(data);
     }
 };
+
+
+async function toggleLN2(){
+    let response = await fetch('/buttons/toggleLN2');
+    let data = await response.json();
+    let toggle_ln2_btn = document.getElementById("toggle_ln2");
+
+    if (data["state"]) {
+        toggle_ln2_btn.style["background-color"] = "green";
+    } else {
+        toggle_ln2_btn.style["background-color"] = "red";
+    }
+};
+
 
 function updateBME(response){
     document.getElementById("it").textContent = response['inside']['temperature'] + " " + String.fromCharCode(176) + "C";
@@ -25,4 +40,7 @@ function updateBME(response){
 
 document.addEventListener('DOMContentLoaded', function(){
     setInterval(() => getNewData(), 5000); // Milliseconds
+
+    let toggle_ln2_btn = document.getElementById("toggle_ln2");
+    toggle_ln2_btn.addEventListener("click", toggleLN2);
 });
