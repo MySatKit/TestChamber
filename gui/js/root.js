@@ -1,12 +1,10 @@
-function getNewData(){
-    fetch('/update')
-        .then((response) => {
-            return response.json();
-        })
-        .then((data) => {
-            updateBME(data);
-            // console.log(data);
-        });
+async function getNewData(){
+    let response = await fetch('/update');
+    if (!response.ok) {
+        console.log(`HTTP error! status: ${response.status}`);
+    } else {
+        updateBME(response.json());
+    }
 };
 
 function updateBME(response){
