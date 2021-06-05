@@ -29,8 +29,8 @@ if not environ.get('no_rpi', False):
 
     # I2C config section -------------------------------------
     my_i2c_bus = MyI2CBus(1)
-    my_i2c_bus["inside"] = BME280(my_i2c_bus)
-    # my_i2c_bus["outside"] = MS5611(my_i2c_bus)
+    my_i2c_bus["outside"] = BME280(my_i2c_bus)
+    my_i2c_bus["inside"] = MS5611(my_i2c_bus)
     # --------------------------------------------------------
 
     # SPI config section -------------------------------------
