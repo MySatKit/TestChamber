@@ -10,7 +10,8 @@ from pydantic import BaseModel
 from os import environ
 from typing import Dict, Any
 
-from video_stream import make_photo, generate, vs
+from video_stream import make_photo_left, generate_left, vs_left
+# from video_stream import make_photo_rigth, generate_right, vs_right
 
 
 app = FastAPI()
@@ -61,10 +62,16 @@ class UpdateResponse(BaseModel):
     thermocouple: float
 
 
-@app.get("/video", response_class=StreamingResponse)
-async def video_feed():
+@app.get("/video_left", response_class=StreamingResponse)
+async def video_left():
     # return the response generated along with the specific media
-    return StreamingResponse(generate(), media_type="multipart/x-mixed-replace;boundary=frame")
+    return StreamingResponse(generate_left(), media_type="multipart/x-mixed-replace;boundary=frame")
+
+
+# @app.get("/video_right", response_class=StreamingResponse)
+# async def video_rigth():
+#     # return the response generated along with the specific media
+#     return StreamingResponse(generate_right(), media_type="multipart/x-mixed-replace;boundary=frame")
 
 
 @app.get("/buttons/toggleLN2")
@@ -84,7 +91,7 @@ async def update():
             'humidity': round(h, 2)
         }
 
-        # p, t = my_i2c_bus['outside'].read_all()
+        p, t = my_i2c_bus['outside'].read_all()
         data['outside'] = {
             'temperature': round(t, 2),
             'pressure': round(p, 2),
@@ -106,12 +113,17 @@ async def update():
 
 
 if __name__ == '__main__':
-    video_t = threading.Thread(target=make_photo)
+    video_t = threading.Thread(target=make_photo_left)
     video_t.daemon = True
     video_t.start()
 
+    # video_t = threading.Thread(target=make_photo_rigth)
+    # video_t.daemon = True
+    # video_t.start()
+
     run(app=app, port=8888)
 
-vs.stop()
+vs_left.stop()
+# vs_right.stop()
 if not dummy:
     del my_relays
