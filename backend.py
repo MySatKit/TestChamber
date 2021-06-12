@@ -36,10 +36,10 @@ if not environ.get('no_rpi', False):
     # SPI config section -------------------------------------
     bus_num = 0  # RPI 4 has only 1 bus_num with number 0
     device = 0  # max6675 starts transmit on CS = 0
-    spi = SpiDev()
-    spi.open(bus_num, device)
-    spi.max_speed_hz = 300000
-    spi.mode = 0
+    # spi = SpiDev()
+    # spi.open(bus_num, device)
+    # spi.max_speed_hz = 300000
+    # spi.mode = 0
     # --------------------------------------------------------
 
     # GPIO config section
@@ -84,20 +84,21 @@ async def toggleNL2():
 async def update():
     data = {}
     if not dummy:
-        t, p, h = my_i2c_bus['inside'].read_all()
-        data['inside'] = {
+        t, p, h = my_i2c_bus['outside'].read_all()
+        data['outside'] = {
             'temperature': t,
             'pressure': round(p, 2),
             'humidity': round(h, 2)
         }
 
-        p, t = my_i2c_bus['outside'].read_all()
-        data['outside'] = {
+        p, t = my_i2c_bus['inside'].read_all()
+        data['inside'] = {
             'temperature': round(t, 2),
             'pressure': round(p, 2),
         }
 
-        data['thermocouple'] = read_celsius(spi)
+        # data['thermocouple'] = read_celsius(spi)
+        data['thermocouple'] = 25.0  # dummy data
     else:
         data['inside'] = {
             'temperature': -40,
@@ -121,7 +122,7 @@ if __name__ == '__main__':
     # video_t.daemon = True
     # video_t.start()
 
-    run(app=app, port=8888)
+    run(app=app, port=8888, host="0.0.0.0")
 
 vs_left.stop()
 # vs_right.stop()

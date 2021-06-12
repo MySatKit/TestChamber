@@ -39,7 +39,7 @@ function updateBME(response){
 
 
 document.addEventListener('DOMContentLoaded', function(){
-    setInterval(() => getNewData(), 5000); // Milliseconds
+    setInterval(() => getNewData(), 500); // Milliseconds
 
     let toggle_ln2_btn = document.getElementById("toggle_ln2");
     toggle_ln2_btn.addEventListener("click", toggleLN2);
