@@ -27,24 +27,24 @@ class MyI2CBus(SMBus):
     def __delitem__(self, key):
         del self.devices[key]
 
-    def load_devices(self, path: str):
-        """
-        uploads devices from config file
+    # def load_devices(self, path: str):
+    #     """
+    #     uploads devices from config file
 
-        format is:
-        <name> <address with 16 base>
-        ex.:
-        bme280 0x60
-        """
-        if not exists(path):
-            return
+    #     format is:
+    #     <name> <address with 16 base>
+    #     ex.:
+    #     bme280 0x60
+    #     """
+    #     if not exists(path):
+    #         return
 
-        with open(path) as handle:
-            data = handle.readlines()
+    #     with open(path) as handle:
+    #         data = handle.readlines()
         
-        if data:
-            self.devices.clear()
-        for row in data:
-            name, addr = row.split()
-            self.add_device(name, int(addr, base=16))
+    #     if data:
+    #         self.devices.clear()
+    #     for row in data:
+    #         name, addr = row.split()
+    #         self.add_device(name, int(addr, base=16))
 

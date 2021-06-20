@@ -62,6 +62,11 @@ class BME280:
     def __init__(self, bus: SMBus):
         self.bus: SMBus = bus
 
+        try:
+            self.chip_id, self.chip_version = self.id()
+        except Exception:
+            raise Exception("No BME280 sensor on bus")
+
         # Read blocks of calibration data from EEPROM
         cal1 = bus.read_i2c_block_data(BME280_ADDRESS, self.BME280_REGISTER_DIG_T1, 24)
         cal2 = bus.read_i2c_block_data(BME280_ADDRESS, self.BME280_REGISTER_DIG_H1, 1)
@@ -209,9 +214,8 @@ def main():
     # Rev 1 Pi uses bus 0
 
     bme280 = BME280(bus)
-    chip_id, chip_version = bme280.id()
-    print(f"Chip ID     : {chip_id}")
-    print(f"Version     : {chip_version}")
+    print(f"Chip ID     : {bme280.chip_id}")
+    print(f"Version     : {bme280.chip_version}")
 
     temperature, pressure, humidity = bme280.read_all()
 

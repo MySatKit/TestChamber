@@ -32,7 +32,10 @@ class MS5611:
 
         # Read 12 bytes of calibration data
         # Read pressure sensitivity
-        data = bus.read_i2c_block_data(0x77, 0xA2, 2)
+        try:
+            data = bus.read_i2c_block_data(0x77, 0xA2, 2)
+        except Exception:
+            raise Exception("No MS5611 sensor on bus")
         self.C1 = data[0] * 256 + data[1]
 
         # Read pressure offset
