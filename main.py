@@ -38,10 +38,10 @@ if not environ.get('no_rpi', False):
     # SPI config section -------------------------------------
     bus_num = 0  # RPI 4 has only 1 bus_num with number 0
     device = 0  # max6675 starts transmit on CS = 0
-    # spi = SpiDev()
-    # spi.open(bus_num, device)
-    # spi.max_speed_hz = 300000
-    # spi.mode = 0
+    spi = SpiDev()
+    spi.open(bus_num, device)
+    spi.max_speed_hz = 300000
+    spi.mode = 0
     # --------------------------------------------------------
 
     # GPIO config section
@@ -100,8 +100,8 @@ async def update():
             'pressure': round(p, 2),
         }
 
-        # data['thermocouple'] = read_celsius(spi)
-        data['thermocouple'] = 25.0  # dummy data
+        data['thermocouple'] = read_celsius(spi)
+        # data['thermocouple'] = 25.0  # dummy data
     else:
         data['inside'] = {
             'temperature': -40,
