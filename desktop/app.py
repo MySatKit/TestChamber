@@ -68,25 +68,25 @@ class App(Ui_MainWindow, QMainWindow):
             self.outside_thread.msleep(100)
 
     def cooler_state_slot(self, radio_btn: QRadioButton):
-        match radio_btn.text().lower():
-            case "on":
-                self.cooler_state = True
-            case "off":
-                self.cooler_state = False
+        text = radio_btn.text().lower()
+        if text == "on":
+            self.cooler_state = True
+        else:
+            self.cooler_state = False
         self.cooler_driver.update(self.cooler_state)
 
     def pressure_state_slot(self, radio_btn: QRadioButton):
-        match radio_btn.text().lower():
-            case "on":
-                self.pressure_state = True
-            case "off":
-                self.pressure_state = False
+        text = radio_btn.text().lower()
+        if text == "on":
+            self.pressure_state = True
+        else:
+            self.pressure_state = False
         self.pressure_driver.update(self.pressure_state)
 
     def light_state_slot(self, radio_btn: QRadioButton):
-        match radio_btn.text().lower():
-            case "on":
-                self.light_state = True
-            case "off":
-                self.light_state = False
+        text = radio_btn.text().lower()
+        if text == "on":
+            self.light_state = True
+        else:
+            self.light_state = False
         self.light_driver.update(self.cooler_state)
